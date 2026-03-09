@@ -1,0 +1,2 @@
+# EchoSense
+EchoSense is an AI-powered communication system designed to assist paralyzed patients with speech impairments. It converts unclear or distorted speech into understandable text and sends it to caregivers. The application includes two modes: Patient Mode for capturing speech and Caretaker Mode for receiving messages and monitoring patient needs.
