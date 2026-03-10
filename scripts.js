@@ -1,3 +1,5 @@
+/* -------- PATIENT MODE -------- */
+
 function loadPatient(){
 
 let id = document.getElementById("patientID").value
@@ -7,29 +9,42 @@ alert("Enter Patient ID")
 return
 }
 
+localStorage.setItem("patientID", id)
+
 document.getElementById("loginSection").style.display="none"
 document.getElementById("patientSection").style.display="block"
 
 document.getElementById("displayID").innerText="Patient ID : "+id
 
-startListening()
-
 }
 
 let recognition
+let listening=false
 
 function startListening(){
+
+if(listening) return
 
 const SpeechRecognition =
 window.SpeechRecognition || window.webkitSpeechRecognition
 
-recognition = new SpeechRecognition()
+if(!SpeechRecognition){
+alert("Use Google Chrome for voice recognition")
+return
+}
 
-recognition.continuous = true
+recognition=new SpeechRecognition()
+recognition.continuous=true
+recognition.lang="en-US"
 
-recognition.onresult = function(event){
+recognition.onstart=function(){
+listening=true
+document.getElementById("speechText").innerText="Listening..."
+}
 
-let text = event.results[event.results.length-1][0].transcript
+recognition.onresult=function(event){
+
+let text=event.results[event.results.length-1][0].transcript
 
 document.getElementById("speechText").innerText=text
 
@@ -37,7 +52,9 @@ checkKeyword(text)
 
 }
 
-recognition.onend = function(){
+/* restart automatically when speech stops */
+
+recognition.onend=function(){
 recognition.start()
 }
 
@@ -49,7 +66,7 @@ function checkKeyword(text){
 
 text=text.toLowerCase()
 
-let id=document.getElementById("patientID").value
+let id=localStorage.getItem("patientID")
 
 if(text.includes("help")){
 sendAlert(id,"help")
@@ -84,62 +101,82 @@ keyword:keyword
 
 }
 
-let lastAlertCount = 0
 
-async function connectPatient(){
+/* -------- CAREGIVER MODE -------- */
 
-let id = document.getElementById("patientLinkID").value
+let lastAlertCount=0
 
-setInterval(()=>{
+function connectPatient(){
+
+let id=document.getElementById("patientLinkID").value
+
+if(!id){
+alert("Enter Patient ID")
+return
+}
+
+localStorage.setItem("patientID",id)
+
+document.getElementById("dashboard").style.display="block"
 
 loadData(id)
 
+setInterval(()=>{
+loadData(id)
 },3000)
 
 }
 
 async function loadData(id){
 
-let response = await fetch("http://127.0.0.1:5000/alerts/"+id)
+let response=await fetch("http://127.0.0.1:5000/alerts/"+id)
 
-let data = await response.json()
+let data=await response.json()
 
-let alertList = document.getElementById("alerts")
+let list=document.getElementById("alerts")
 
-alertList.innerHTML=""
+list.innerHTML=""
 
 data.forEach(a=>{
 
 let li=document.createElement("li")
 
+let message=""
+
 if(a.keyword=="pain"){
-li.innerText="Patient is in pain"
+message="Patient is in pain"
+}
+else if(a.keyword=="help"){
+message="Patient needs help"
 }
 else{
-li.innerText="Patient needs "+a.keyword
+message="Patient needs "+a.keyword
 }
 
-alertList.appendChild(li)
+li.innerText=message+" - "+a.time
+
+list.appendChild(li)
 
 })
 
-if(data.length > lastAlertCount){
-document.getElementById("alertSound").play()
+if(data.length>lastAlertCount){
+
+let sound=document.getElementById("alertSound")
+
+if(sound) sound.play()
+
 }
 
-lastAlertCount = data.length
+lastAlertCount=data.length
 
 }
 
 function clearAlerts(){
 
-fetch("http://127.0.0.1:5000/clear",{
-method:"POST"
-})
+fetch("http://127.0.0.1:5000/clear",{method:"POST"})
 
 .then(()=>{
 document.getElementById("alerts").innerHTML=""
-lastAlertCount = 0
 })
 
 }

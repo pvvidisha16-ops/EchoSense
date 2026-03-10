@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Patient History</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Patient Alert History</h2>
+
+<ul id="historyList"></ul>
+
+<br>
+
+<button class="btn" onclick="history.back()">⬅ Back</button>
+
+</div>
+
+<script>
+
+async function loadHistory(){
+
+let id=localStorage.getItem("patientID")
+
+let res=await fetch("http://127.0.0.1:5000/alerts/"+id)
+
+let data=await res.json()
+
+let list=document.getElementById("historyList")
+
+list.innerHTML=""
+
+data.forEach(a=>{
+
+let li=document.createElement("li")
+
+li.innerText=a.keyword+" - "+a.time
+
+list.appendChild(li)
+
+})
+
+}
+
+loadHistory()
+
+</script>
+
+</body>
+
+</html>
