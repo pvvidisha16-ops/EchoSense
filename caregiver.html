@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>EchoSense Caregiver</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Caregiver Dashboard</h2>
+
+<input id="patientLinkID" placeholder="Enter Patient ID">
+
+<button class="btn" onclick="connectPatient()">Connect</button>
+
+<h3>Alerts</h3>
+
+<button class="btn" onclick="clearAlerts()">Clear Alerts</button>
+
+<ul id="alerts"></ul>
+
+</div>
+
+<audio id="alertSound" src="alert.mp3"></audio>
+
+<script src="scripts.js"></script>
+
+</body>
+
+</html>
