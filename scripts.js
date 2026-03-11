@@ -48,11 +48,9 @@ let text=event.results[event.results.length-1][0].transcript
 
 document.getElementById("speechText").innerText=text
 
-checkKeyword(text)
+sendSpeech(text)
 
 }
-
-/* restart automatically when speech stops */
 
 recognition.onend=function(){
 recognition.start()
@@ -62,29 +60,11 @@ recognition.start()
 
 }
 
-function checkKeyword(text){
-
-text=text.toLowerCase()
+function sendSpeech(text){
 
 let id=localStorage.getItem("patientID")
 
-if(text.includes("help")){
-sendAlert(id,"help")
-}
-
-if(text.includes("water")){
-sendAlert(id,"water")
-}
-
-if(text.includes("pain")){
-sendAlert(id,"pain")
-}
-
-}
-
-function sendAlert(id,keyword){
-
-fetch("http://127.0.0.1:5000/alert",{
+fetch("http://192.168.20.113:5000/alert",{
 
 method:"POST",
 
@@ -94,7 +74,7 @@ headers:{
 
 body:JSON.stringify({
 patient_id:id,
-keyword:keyword
+speech:text
 })
 
 })
@@ -102,9 +82,29 @@ keyword:keyword
 }
 
 
+/* -------- AI VOICE ALERT -------- */
+
+function speakAlert(message){
+
+window.speechSynthesis.cancel()
+
+let speech = new SpeechSynthesisUtterance(message)
+
+speech.lang="en-US"
+speech.rate=1
+speech.pitch=1
+speech.volume=1
+
+window.speechSynthesis.speak(speech)
+
+}
+
+
 /* -------- CAREGIVER MODE -------- */
 
 let lastAlertCount=0
+let lastAlertElement=null
+let escalatedAlerts={}
 
 function connectPatient(){
 
@@ -129,7 +129,7 @@ loadData(id)
 
 async function loadData(id){
 
-let response=await fetch("http://127.0.0.1:5000/alerts/"+id)
+let response=await fetch("http://192.168.20.113:5000/alerts/"+id)
 
 let data=await response.json()
 
@@ -137,32 +137,101 @@ let list=document.getElementById("alerts")
 
 list.innerHTML=""
 
+/* update alert counter */
+
+let counter=document.getElementById("alertCount")
+if(counter){
+counter.innerText=data.length
+}
+
+/* show alerts */
+
 data.forEach(a=>{
 
 let li=document.createElement("li")
 
 let message=""
 
-if(a.keyword=="pain"){
-message="Patient is in pain"
-}
-else if(a.keyword=="help"){
-message="Patient needs help"
-}
-else{
-message="Patient needs "+a.keyword
+if(a.intent=="emergency"){
+message="EMERGENCY ALERT"
+li.classList.add("emergency")
 }
 
-li.innerText=message+" - "+a.time
+else if(a.intent=="medical pain"){
+message="PATIENT IN PAIN"
+li.classList.add("pain")
+}
 
-list.appendChild(li)
+else if(a.intent=="need water"){
+message="PATIENT NEEDS WATER"
+li.classList.add("water")
+}
+
+let alertKey = a.time + a.speech
+
+li.dataset.key = alertKey
+
+li.innerHTML = message+" - "+a.time+" ("+a.speech+")"
+
+if(escalatedAlerts[alertKey]){
+
+li.classList.remove("emergency","pain","water")
+li.classList.add("escalated")
+
+li.innerHTML = "<span class='tag'>ESCALATED</span> " + li.innerHTML
+
+}
+
+list.prepend(li)
+
+lastAlertElement = li
 
 })
 
-if(data.length>lastAlertCount){
+
+/* -------- SHOW POPUP ONLY FOR NEW ALERT -------- */
+
+if(data.length > lastAlertCount){
+
+let latestAlert = data[data.length - 1]
+
+let popup=document.getElementById("alertPopup")
+let overlay=document.getElementById("popupOverlay")
+let text=document.getElementById("popupText")
+
+let popupMessage=""
+
+/* SIMPLE MESSAGES (NO PATIENT ID) */
+
+if(latestAlert.intent=="emergency"){
+popupMessage="Emergency detected"
+}
+
+else if(latestAlert.intent=="medical pain"){
+popupMessage="Patient is in pain"
+}
+
+else if(latestAlert.intent=="need water"){
+popupMessage="Patient needs water"
+}
+
+if(popup && text){
+
+text.innerText = popupMessage
+
+popup.style.display="block"
+
+if(overlay){
+overlay.style.display="block"
+}
+
+/* AI VOICE */
+
+speakAlert(popupMessage)
+
+}
 
 let sound=document.getElementById("alertSound")
-
 if(sound) sound.play()
 
 }
@@ -171,12 +240,69 @@ lastAlertCount=data.length
 
 }
 
+
+/* -------- ACKNOWLEDGE ALERT -------- */
+
+function acknowledgeAlert(){
+
+document.getElementById("alertPopup").style.display="none"
+
+let overlay=document.getElementById("popupOverlay")
+if(overlay){
+overlay.style.display="none"
+}
+
+}
+
+
+/* -------- ESCALATE ALERT -------- */
+
+function escalateAlert(){
+
+document.getElementById("alertPopup").style.display="none"
+
+let overlay=document.getElementById("popupOverlay")
+if(overlay){
+overlay.style.display="none"
+}
+
+if(lastAlertElement){
+
+let key = lastAlertElement.dataset.key
+
+escalatedAlerts[key] = true
+
+lastAlertElement.classList.remove("emergency","pain","water")
+
+lastAlertElement.classList.add("escalated")
+
+lastAlertElement.innerHTML =
+"<span class='tag'>ESCALATED</span> " + lastAlertElement.innerHTML
+
+}
+
+alert("Alert escalated to backup caregiver")
+
+}
+
+
+/* -------- CLEAR ALERTS -------- */
+
 function clearAlerts(){
 
-fetch("http://127.0.0.1:5000/clear",{method:"POST"})
+fetch("http://192.168.20.113:5000/clear",{method:"POST"})
 
 .then(()=>{
+
 document.getElementById("alerts").innerHTML=""
+
+let counter=document.getElementById("alertCount")
+if(counter){
+counter.innerText="0"
+}
+
+escalatedAlerts = {}
+
 })
 
 }

@@ -2,19 +2,33 @@
 <html>
 
 <head>
+<meta charset="UTF-8">
 <title>EchoSense Caregiver</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
+<div class="header">
+
+<div class="logo">
+<span class="logo-icon">🎤</span>
+<h1>EchoSense</h1>
+</div>
+
+<p>AI Voice Emergency Monitoring System</p>
+
+</div>
+
 <div class="container">
 
 <h2>Caregiver Dashboard</h2>
 
+<p class="live-status">● LIVE MONITORING</p>
+
 <input id="patientLinkID" placeholder="Enter Patient ID">
 
-<br><br>
+<br>
 
 <button class="btn" onclick="connectPatient()">Connect</button>
 
@@ -22,19 +36,47 @@
 
 <br>
 
-<a href="details.html">
+<a href="detail.html">
 <button class="btn">Patient Details</button>
 </a>
 
-<h3>Alerts</h3>
+<a href="vitals.html">
+<button class="btn">Vitals Monitor</button>
+</a>
+<h3>Alerts <span id="alertCount">0</span></h3>
 
-<button class="btn" onclick="clearAlerts()">Clear Alerts</button>
+<button class="btn clear-btn" onclick="clearAlerts()">Clear Alerts</button>
 
 <ul id="alerts"></ul>
 
 </div>
 
 </div>
+
+
+<!-- POPUP OVERLAY -->
+
+<div id="popupOverlay" class="popup-overlay"></div>
+
+
+<!-- ALERT POPUP -->
+
+<div id="alertPopup" class="alert-popup">
+
+<h2>🚨 Patient Alert</h2>
+
+<p id="popupText"></p>
+
+<div class="popup-buttons">
+
+<button onclick="acknowledgeAlert()" class="btn">Acknowledge</button>
+
+<button onclick="escalateAlert()" class="btn escalate-btn">Escalate</button>
+
+</div>
+
+</div>
+
 
 <audio id="alertSound" src="alert.mp3"></audio>
 

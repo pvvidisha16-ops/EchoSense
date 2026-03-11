@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>Patient Vitals</title>
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Patient Vital Monitoring</h2>
+
+<div class="vitals">
+
+<p><b>Heart Rate:</b> <span id="heart">78</span> BPM</p>
+
+<p><b>Pulse:</b> <span id="pulse">76</span> BPM</p>
+
+<p><b>Oxygen Level:</b> <span id="oxygen">97</span>%</p>
+
+</div>
+
+<h3>Treatment Progress</h3>
+
+<canvas id="progressChart"></canvas>
+
+<br>
+
+<button class="btn" onclick="history.back()">← Back</button>
+
+</div>
+
+
+<script>
+
+const ctx=document.getElementById("progressChart")
+
+new Chart(ctx,{
+type:"line",
+data:{
+labels:["Week 1","Week 2","Week 3","Week 4","Week 5"],
+datasets:[{
+label:"Recovery Progress",
+data:[40,50,58,67,75],
+borderColor:"#6fa8ff",
+backgroundColor:"rgba(111,168,255,0.2)",
+tension:0.4
+}]
+},
+options:{
+responsive:true,
+plugins:{
+legend:{
+labels:{
+color:"white"
+}
+}
+},
+scales:{
+x:{
+ticks:{color:"white"}
+},
+y:{
+ticks:{color:"white"}
+}
+}
+}
+})
+
+</script>
+
+</body>
+
+</html>

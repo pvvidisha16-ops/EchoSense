@@ -2,11 +2,17 @@
 <html>
 
 <head>
-<title>EchoSense Patient</title>
+<meta charset="UTF-8">
+<title>🗣️EchoSense Patient</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+
+<div class="header">
+<h1>EchoSense</h1>
+<p>AI Voice Emergency Monitoring System</p>
+</div>
 
 <div class="container">
 
@@ -16,18 +22,21 @@
 
 <input id="patientID" placeholder="Enter Patient ID">
 
+<br>
+
 <button class="btn" onclick="loadPatient()">Continue</button>
 
 </div>
 
 <div id="patientSection" style="display:none;">
 
-<p id="displayID"></p>
+<p id="displayID" class="patient-id"></p>
 
+<p class="status">Voice Monitoring Active</p>
 
 <button id="micButton" class="mic-btn" onclick="startListening()">🎤</button>
 
-<p id="speechText"></p>
+<p id="speechText" class="speech-box">Waiting for speech...</p>
 
 </div>
 
